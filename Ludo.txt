@@ -1,0 +1,142 @@
+/* En-tête du programme
+====================
+Programme:       Zelda.h
+Auteur:          Ludovic Therrien
+Date création:   25/04/2017
+Description:	 Jeux Zelda 
+
+/* Directives au pré-processeur
+============================*/
+
+#include <iostream>
+#include <cassert>
+#include <iomanip>
+#include <SFML/Graphics.hpp>
+
+using namespace sf;
+using namespace std;
+
+void main()
+{
+	enum Direction {Left, Right, Up, Down};
+
+	Vector2i sourceLink(1, Down); //x et y des images sprites
+	Vector2i sourceAttack(1, Down);
+
+	RenderWindow window(VideoMode(800, 800), "ZELDA Link to the present");
+
+	Texture texture; //charger une texture 
+	Text text;
+	Font font;
+	Event event;
+	Sprite Link(texture);
+	Sprite Attack(texture);
+	Clock clock;
+
+
+	if (!font.loadFromFile("arial.ttf")) //Si load pas
+	{
+		//
+	}
+
+
+	if (!texture.loadFromFile("link.png")) //Si load pas
+	{
+		//
+	}
+
+	Link.setPosition(Vector2f(400, 400));		//Position de départ du personnage
+
+	while (window.isOpen())			//Tant que la fenêtre est ouverte
+	{
+		window.waitEvent(event);
+		
+		switch (event.type)	
+		{
+		case Event::Closed:
+			window.close();
+			break;
+		case Event::KeyPressed:
+			switch (event.key.code)
+			{
+			case Keyboard::Escape:
+				window.close();
+				break;
+			case Keyboard::Left:				// Si link touche l'écran vers la gauche
+				if (Link.getPosition().x > 0)
+				{
+					Link.move(Vector2f(-4, 0));
+					sourceLink.y = Left;
+				}
+				break;
+			case Keyboard::Right:
+				if (Link.getPosition().x < 750) //Si link touche l'écran vers la droite (800 -50)
+				{
+					Link.move(Vector2f(4, 0));
+					sourceLink.y = Right;
+				}
+				break;
+			case Keyboard::Up:
+				if (Link.getPosition().y > 0) // Si link touche l'écran vers le haut
+				{
+					Link.move(Vector2f(0, -4));
+					sourceLink.y = Up;
+				}
+				break;
+			case Keyboard::Down:
+				if (Link.getPosition().y < 742) // Si link touche l'écran vers le bas (800-58)
+			{
+				Link.move(Vector2f(0, 4));
+				sourceLink.y = Down;
+			}
+				break;
+
+			case Keyboard::X:
+					texture.loadFromFile("linkAttack.png");
+					sourceAttack.x++;
+					if (sourceAttack.x >= 2)	//Retourne aa l'animation de depart après la serie
+						sourceLink.x = 0;
+				break;
+			default:
+				break;
+			}
+		
+		}
+		
+		if (Link.getPosition().x <= 0 || Link.getPosition().x >= 800 || Link.getPosition().y <= 0 || Link.getPosition().y >= 800)  //Si link sort de l'écran
+		{
+			text.setFont(font);
+			text.setString("Erreur");
+			text.setCharacterSize(24);
+			text.setFillColor(Color::Blue);
+		}
+	
+		Time time;
+		time = clock.getElapsedTime();
+
+		if (time.asMilliseconds() >= 300)    //Permet que le sprite n'ai pas trop vite 
+		{
+			sourceLink.x++;
+			if (sourceLink.x >= 2)			//Retourne aa l'animation de depart après la serie
+				sourceLink.x = 0;
+
+			clock.restart();
+		}
+		
+		Link.setTextureRect(IntRect(sourceLink.x * 50, sourceLink.y * 58, 50, 58));			//Initialisation du personnage
+		window.clear();
+		window.draw(Link);
+		window.draw(text);
+		window.display();
+	}
+}
+
+Sprite loadSprite(string filename)
+{
+	Texture texture;
+	texture.loadFromFile(filename);
+
+	return Sprite(texture);
+} //erreur : la texture est détruite ici !
+
+
