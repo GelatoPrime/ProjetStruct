@@ -1,0 +1,200 @@
+/* En-tête du programme
+====================
+Programme:        Zelda.cpp
+Auteur:           Pierre-Luc Pépin
+Date création:    28/03/2017
+Description:
+
+/* Directives au pré-processeur
+============================*/
+#include <SFML/Graphics.hpp>
+#include <locale>
+#include <iostream>
+#include <fstream>
+#include <cassert>
+#include <iomanip>
+#include "tableau.h"
+#include "../../saisieSecurisee.h"
+
+using namespace sf;
+using namespace std;
+
+/* Prototype
+========================*/
+bool confirmerPosition(coordonee coordonees, tableau& grille);
+bool confirmerMouvement(coordonee coordonees, char direction, tableau grille);
+
+void initialiserTableau(ifstream& entree, tableau& grille);
+
+void chargerTexture(int indice, Texture tabText[4], string nomFichier[4]);
+
+void main()
+{
+	char direction;
+
+	ifstream entree;
+	int tab[25][25];
+	Texture tabTexture[4];
+	string nomTexture[4]{ "plant.png", "red.PNG","", "stone.png" };
+	
+	tableau grille;
+	coordonee position;	
+
+	RenderWindow window(VideoMode(800, 800), "ZELDA Link to the present");
+
+	Texture personage; //charger une texture 
+
+	bool jouer = true;
+
+
+	if (!personage.loadFromFile("LotusBleu.jpeg")) //Si load pas
+	{
+		//
+	}
+	
+	for (int i = 0; i < 4; i++)
+	{
+		chargerTexture(i, tabTexture, nomTexture);
+	}
+
+	if (ouvrirFichier(entree, "Monde2.txt") && !siFichierVide(entree))
+	{
+		initialiserTableau(entree,grille);
+	}
+	
+	Sprite sprite(personage);
+	sprite.setPosition(Vector2f(320, 320));		//Position du sprite
+	position.x = 10;
+	position.y = 10;
+
+
+
+	while (window.isOpen())
+	{
+		Event event;
+		while (window.pollEvent(event))
+		{
+			switch (event.type)
+			{
+			case Event::Closed:
+				window.close();
+				break;
+			case Event::KeyPressed:
+				switch (event.key.code)
+				{
+				case Keyboard::Left:
+					direction = 'l';
+					if (confirmerMouvement(position, direction,grille) == false);
+					else
+					{
+						sprite.move(Vector2f(-8, 0));
+						position.x--;
+					}
+					break;
+				case Keyboard::Right:
+					direction = 'd';
+					if (confirmerMouvement(position, direction,grille) == false);
+					else
+					{
+						sprite.move(Vector2f(8, 0));
+						position.x++;
+					}
+					break;
+				case Keyboard::Up:
+					direction = 'u';
+					if (confirmerMouvement(position, direction,grille) == false);
+					else
+					{
+						sprite.move(Vector2f(0, -8));
+						position.y--;
+					}
+					break;
+				case Keyboard::Down:
+					direction = 'd';
+					if (confirmerMouvement(position, direction,grille) == false);
+					else
+					{
+						sprite.move(Vector2f(0, 8));
+						position.y++;
+					}
+					break;				
+				}
+			}
+		}
+
+		window.clear();
+		window.draw(sprite);
+		window.display();
+	}
+}
+//Regarde si le sprite peut aller sur la possition
+bool confirmerPosition(coordonee coordonees, tableau& grille)
+{
+	if (coordonees.x < 0 || coordonees.x > 80 || coordonees.y < 0 || coordonees.y > 80)		//Si la coordonée est dans le cadre de l'écran
+	{
+		return false;
+	}
+	else if (grille.getGrille(coordonees) % 2 == 1)	//si il y a quelque chosse dans la case
+	{
+		return false;
+	}
+	return true;
+}
+//Regarde si le sprite peut boujer dans la case suivante
+bool confirmerMouvement(coordonee coordonees, char direction, tableau grille)
+{
+
+	switch (direction)
+	{
+	case 'l':
+		coordonees.x--;
+		break;
+	case 'r':
+		coordonees.x++;
+		break;
+	case 'u':
+		coordonees.y--;
+		break;
+	case 'd':
+		coordonees.y++;
+		break;
+	}
+
+	if (confirmerPosition(coordonees, grille) == true)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+void initialiserTableau(ifstream& entree, tableau& grille)
+{
+	coordonee position;
+	int valeur;
+		
+	for (int i = 0; i < 25; i++)
+	{
+		for (int j = 0; j < 25; j++)
+		{
+			position.x = j;
+			position.y = i;
+			entree >> valeur;
+			grille.setGrille(position, valeur);
+		}
+	}
+	entree.close();
+}
+void chargerTexture(int indice, Texture tabText[4], string nomFichier[4])
+{
+	if (!tabText[indice].loadFromFile(nomFichier[4])) //Si load pas
+	{
+		//
+	}
+}
+void afficherTexture(tableau grille, coordonee coordonees, Texture tabText)
+{
+	Sprite sprite(tabText);
+	sprite.setPosition(Vector2f(coordonees.x*32, coordonees.y*32));
+
+}
